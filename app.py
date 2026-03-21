@@ -1,5 +1,6 @@
 import streamlit as st
 import base64
+import os
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as GO
@@ -283,11 +284,15 @@ if "search_ticker2" not in st.session_state: st.session_state.search_ticker2 = "
 if "do_search" not in st.session_state: st.session_state.do_search = False
 
 # Load and encode logo for UI
+img_b64 = ""
 try:
-    with open("logo.png", "rb") as f:
-        img_b64 = base64.b64encode(f.read()).decode()
-except:
-    img_b64 = ""
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    logo_path = os.path.join(current_dir, "logo.png")
+    if os.path.exists(logo_path):
+        with open(logo_path, "rb") as f:
+            img_b64 = base64.b64encode(f.read()).decode()
+except Exception as e:
+    pass
 
 # -----------------
 # SIDEBAR
