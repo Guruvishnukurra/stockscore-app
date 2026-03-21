@@ -86,12 +86,16 @@ class DataCollector:
         info = {}
         for attempt in range(3):
             try:
-                info = self.ticker.info
-                if len(info) >= 10:
+                data = self.ticker.info
+                if data and len(data) >= 10:
+                    info = data
                     break
             except Exception:
                 pass
             time.sleep(1.5)
+        
+        if info is None: 
+            info = {}
             
         extracted = {
             "trailingPE": info.get("trailingPE"),
