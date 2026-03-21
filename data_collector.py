@@ -87,73 +87,50 @@ class DataCollector:
         for attempt in range(3):
             try:
                 data = self.ticker.info
-                if data and len(data) >= 10:
+                if data and isinstance(data, dict) and len(data) >= 5:
                     info = data
                     break
             except Exception:
                 pass
-            time.sleep(1.5)
-        
-        if info is None: 
-            info = {}
+            time.sleep(1)
             
-        extracted = {
-            "trailingPE": info.get("trailingPE"),
-            "forwardPE": info.get("forwardPE"),
-            "priceToBook": info.get("priceToBook"),
-            "trailingEps": info.get("trailingEps"),
-            "forwardEps": info.get("forwardEps"),
-            "returnOnEquity": info.get("returnOnEquity"),
-            "returnOnAssets": info.get("returnOnAssets"),
-            "netMargins": info.get("netMargins"),
-            "operatingMargins": info.get("operatingMargins"),
-            "grossMargins": info.get("grossMargins"),
-            "revenueGrowth": info.get("revenueGrowth"),
-            "earningsGrowth": info.get("earningsGrowth"),
-            "debtToEquity": info.get("debtToEquity"),
-            "currentRatio": info.get("currentRatio"),
-            "freeCashflow": info.get("freeCashflow"),
-            "operatingCashflow": info.get("operatingCashflow"),
-            "totalRevenue": info.get("totalRevenue"),
-            "netIncome": info.get("netIncome"),
-            "sharesOutstanding": info.get("sharesOutstanding"),
-            "floatShares": info.get("floatShares"),
-            "heldPercentInsiders": info.get("heldPercentInsiders"),
-            "heldPercentInstitutions": info.get("heldPercentInstitutions"),
-            "marketCap": info.get("marketCap"),
-            "enterpriseValue": info.get("enterpriseValue"),
-            "beta": info.get("beta"),
-            "fiftyTwoWeekHigh": info.get("fiftyTwoWeekHigh"),
-            "fiftyTwoWeekLow": info.get("fiftyTwoWeekLow"),
-            "regularMarketPrice": info.get("regularMarketPrice"),
-            "currentPrice": info.get("currentPrice"),
-            "previousClose": info.get("previousClose"),
-            "sector": info.get("sector"),
-            "industry": info.get("industry"),
-            "longName": info.get("longName"),
-            "shortName": info.get("shortName"),
-            "trailingPegRatio": info.get("trailingPegRatio"),
-            "priceToSalesTrailing12Months": info.get("priceToSalesTrailing12Months"),
-            "enterpriseToEbitda": info.get("enterpriseToEbitda"),
-            "enterpriseToRevenue": info.get("enterpriseToRevenue"),
-            "pegRatio": info.get("pegRatio")
-        }
+        # Ensure info is a dictionary before extraction
+        if not isinstance(info, dict):
+            info = {}
 
-        # Current Price Resolution
+        # Safe extraction with defaults
+        fields = [
+            "trailingPE", "forwardPE", "priceToBook", "trailingEps", "forwardEps",
+            "returnOnEquity", "returnOnAssets", "netMargins", "operatingMargins",
+            "grossMargins", "revenueGrowth", "earningsGrowth", "debtToEquity",
+            "currentRatio", "freeCashflow", "operatingCashflow", "totalRevenue",
+            "netIncome", "sharesOutstanding", "floatShares", "heldPercentInsiders",
+            "heldPercentInstitutions", "marketCap", "enterpriseValue", "beta",
+            "fiftyTwoWeekHigh", "fiftyTwoWeekLow", "regularMarketPrice",
+            "currentPrice", "previousClose", "sector", "industry", "longName",
+            "shortName", "trailingPegRatio", "priceToSalesTrailing12Months",
+            "enterpriseToEbitda", "enterpriseToRevenue", "pegRatio"
+        ]
+        
+        extracted = {}
+        for field in fields:
+            try:
+                extracted[field] = info.get(field)
+            except:
+                extracted[field] = None
+
+        # Current Price Resolution (Prioritize fast_info if available)
+        curr_price = None
         try:
             curr_price = self.ticker.fast_info.last_price
-        except Exception:
-            curr_price = None
-        
+        except:
+            pass
+            
         if curr_price is None or pd.isna(curr_price):
-            curr_price = extracted.get("currentPrice")
-        if curr_price is None or pd.isna(curr_price):
-            curr_price = extracted.get("regularMarketPrice")
-        if curr_price is None or pd.isna(curr_price):
-            curr_price = extracted.get("previousClose")
+            curr_price = extracted.get("currentPrice") or extracted.get("regularMarketPrice") or extracted.get("previousClose")
             
         extracted["currentPrice_resolved"] = curr_price
-        extracted["currentPrice"] = curr_price # Override
+        extracted["currentPrice"] = curr_price
         extracted["symbol"] = self.ticker_str
         
         # marketCap Fallback
@@ -161,8 +138,8 @@ class DataCollector:
         if mcap is None or pd.isna(mcap):
             try:
                 mcap = self.ticker.fast_info.market_cap
-            except Exception:
-                mcap = None
+            except:
+                pass
         extracted["marketCap"] = mcap
         
         # sharesOutstanding Fallback
@@ -170,9 +147,17 @@ class DataCollector:
         if shares is None or pd.isna(shares):
             try:
                 shares = self.ticker.fast_info.shares_outstanding
-            except Exception:
-                shares = None
+            except:
+                pass
         extracted["sharesOutstanding"] = shares
+
+        # Critical: Final check for NoneType before returning
+        extracted["CompanyName"] = extracted.get("longName") or extracted.get("shortName") or self.ticker_str
+        extracted["sector"] = extracted.get("sector") or extracted.get("industry") or "Default"
+        extracted["currency_symbol"] = self.currency_symbol
+        
+        self._cache["info"] = extracted
+        return extracted
 
         # SHARES SCALE CHECK
         if shares and curr_price and mcap:
