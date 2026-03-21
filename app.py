@@ -322,7 +322,8 @@ with st.sidebar:
         st.markdown(f'<div><span class="pulse-dot pulse-red"></span><span style="color:var(--primary-text); font-size:13px;">Market Closed</span></div>', unsafe_allow_html=True)
     st.markdown(f'<div style="color:var(--muted-text); font-size:11px; margin-top:4px;">{now.strftime("%I:%M %p IST")}</div>', unsafe_allow_html=True)
     
-    # 4. Divider line
+    st.markdown('<div class="sb-divider"></div>', unsafe_allow_html=True)
+    st.markdown('<div style="color:var(--muted-text); font-size:10px; text-align:center;">v1.0.4 - Release (Mar 21)</div>', unsafe_allow_html=True)
     st.markdown('<div class="sb-divider"></div>', unsafe_allow_html=True)
     
     # 5. Weights section
