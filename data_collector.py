@@ -151,14 +151,6 @@ class DataCollector:
                 pass
         extracted["sharesOutstanding"] = shares
 
-        # Critical: Final check for NoneType before returning
-        extracted["CompanyName"] = extracted.get("longName") or extracted.get("shortName") or self.ticker_str
-        extracted["sector"] = extracted.get("sector") or extracted.get("industry") or "Default"
-        extracted["currency_symbol"] = self.currency_symbol
-        
-        self._cache["info"] = extracted
-        return extracted
-
         # SHARES SCALE CHECK
         if shares and curr_price and mcap:
             expected = mcap / curr_price
@@ -172,7 +164,7 @@ class DataCollector:
             extracted["sharesOutstanding"] = shares
             
         extracted["CompanyName"] = extracted.get("longName") or extracted.get("shortName") or self.ticker_str
-        extracted["sector"] = extracted.get("sector") or extracted.get("industry") or "Unknown"
+        extracted["sector"] = extracted.get("sector") or extracted.get("industry") or "Default"
         extracted["currency_symbol"] = self.currency_symbol
         
         self._cache["info"] = extracted
