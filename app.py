@@ -294,7 +294,7 @@ except:
 # -----------------
 with st.sidebar:
     # 1. Logo at top
-    st.markdown("""
+    st.markdown(f"""
     <div style="display: flex; align-items: center; margin-bottom: 20px;">
         <img src="data:image/png;base64,{img_b64}" style="width: 32px; height: 32px; border-radius: 8px; margin-right: 12px; box-shadow: 0 0 15px rgba(91,141,238,0.3);">
         <div style="font-size: 22px; letter-spacing: -0.5px;">
