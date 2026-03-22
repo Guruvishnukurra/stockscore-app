@@ -69,22 +69,9 @@ class ValuationAnalyzer:
             elif market_cap and curr_price and curr_price > 0:
                 shares = market_cap / curr_price
 
-            # SHARES SCALE CHECK
-            if shares and market_cap and curr_price and curr_price > 0:
-                expected = market_cap / curr_price
-                if shares < expected / 100:
-                    shares *= 1000000
-                elif shares < expected / 10:
-                    shares *= 1000
-                elif shares > expected * 100:
-                    shares /= 1000000
-
             # FCF SCALE CHECK
-            if fcf and market_cap:
-                if abs(fcf) < market_cap / 1000000:
-                    fcf *= 1000000
-                elif abs(fcf) > market_cap * 10:
-                    fcf /= 1000000
+            if fcf is not None and abs(fcf) < 1000 and market_cap and market_cap > 1e9:
+                fcf *= 1e9
 
             rev_growth = self.info.get("revenueGrowth")
             growth_rate = 0.05

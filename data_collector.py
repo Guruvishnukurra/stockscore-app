@@ -163,7 +163,7 @@ class DataCollector:
                 shares = shares / 1000
             extracted["sharesOutstanding"] = shares
             
-        extracted["CompanyName"] = extracted.get("longName") or extracted.get("shortName") or self.ticker_str
+        extracted["Company Name"] = extracted.get("longName") or extracted.get("shortName") or self.ticker_str
         extracted["sector"] = extracted.get("sector") or extracted.get("industry") or "Default"
         extracted["currency_symbol"] = self.currency_symbol
         

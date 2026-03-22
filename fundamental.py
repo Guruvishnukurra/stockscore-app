@@ -40,6 +40,8 @@ class FundamentalAnalyzer:
             if ni and tr and tr != 0: return ni / tr
         elif info_key == "operatingMargins":
             oi = self._get_df_val("income_statement", "Operating Income")
+            if oi is None:
+                oi = self._get_df_val("income_statement", "EBIT")
             tr = self._get_df_val("income_statement", "Total Revenue")
             if oi and tr and tr != 0: return oi / tr
         elif info_key == "currentRatio":
@@ -123,8 +125,30 @@ class FundamentalAnalyzer:
             earn_growth = min(eg_3y, 40.0)
             
         # Valuations
-        pe = self._safe_get("trailingPE") or self.info.get("forwardPE")
+        pe = self._safe_get("trailingPE")
+        if pe is None:
+            pe = self.info.get("forwardPE")
+        if pe is None:
+            price = self.info.get("currentPrice")
+            eps = self.info.get("trailingEps")
+            if price and eps and eps > 0:
+                pe = price / eps
+                
         pb = self._safe_get("priceToBook")
+        if pb is None:
+            price = self.info.get("currentPrice")
+            mcap = self.info.get("marketCap")
+            ta = self._get_df_val("balance_sheet", "Total Assets")
+            tl = self._get_df_val("balance_sheet", "Total Liabilities Net Minority Interest")
+            if mcap and ta and tl:
+                book_value = ta - tl
+                shares = self.info.get("sharesOutstanding")
+                if book_value and shares and shares > 0:
+                    bvps = book_value / shares
+                    cp = self.info.get("currentPrice")
+                    if cp and bvps > 0:
+                        pb = cp / bvps
+                        
         peg = self.info.get("trailingPegRatio")
         if peg is None and pe is not None and earn_growth is not None and earn_growth > 0:
             peg = pe / earn_growth
@@ -145,7 +169,11 @@ class FundamentalAnalyzer:
         interest_cov = None
         if self.info.get("sector") != "Financial Services":
             oi = self._get_df_val("income_statement", "Operating Income")
-            ie = self._get_df_val("income_statement", "Interest Expense")
+            if oi is None:
+                oi = self._get_df_val("income_statement", "EBIT")
+            ie = self._get_df_val("income_statement", "Interest Expense Non Operating")
+            if ie is None:
+                ie = self._get_df_val("income_statement", "Interest Expense")
             if oi is not None and ie is not None and ie != 0:
                 interest_cov = oi / abs(ie)
                 
@@ -176,6 +204,13 @@ class FundamentalAnalyzer:
         ebitda = self._get_df_val("income_statement", "EBITDA") or self._get_df_val("income_statement", "Normalized EBITDA")
         if ebitda is not None and tr is not None and tr != 0:
             ebitda_margin = (ebitda / tr) * 100
+
+        ev_ebitda = self.info.get("enterpriseToEbitda")
+        if ev_ebitda is None:
+            ev = self.info.get("enterpriseValue")
+            ebitda_val = self._get_df_val("income_statement", "EBITDA") or self._get_df_val("income_statement", "Normalized EBITDA")
+            if ev and ebitda_val and ebitda_val != 0:
+                ev_ebitda = ev / ebitda_val
 
         # SCORING
         score = 0.0
@@ -285,7 +320,8 @@ class FundamentalAnalyzer:
             "Earnings Growth": earn_growth, "PE Ratio": pe,
             "PB Ratio": pb, "PEG Ratio": peg, "Debt/Equity": debt_equity,
             "Current Ratio": current_ratio, "Interest Coverage": interest_cov,
-            "Asset Turnover": asset_turnover
+            "Asset Turnover": asset_turnover, "EV/EBITDA": ev_ebitda,
+            "Price/Sales": self.info.get("priceToSalesTrailing12Months")
         }
         
         return {

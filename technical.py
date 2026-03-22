@@ -134,7 +134,7 @@ class TechnicalAnalyzer:
         if not pd.isna(rsi):
             if 50 <= rsi <= 65: score += 3; flags.append("[+] Ideal Bullish RSI (50-65)")
             elif 65 < rsi <= 75: score += 2; flags.append("[+] Strong RSI momentum")
-            elif 40 <= rsi < 50: score += 2; flags.append("[*] Neutral RSI tracking")
+            elif 40 <= rsi < 50: score += 1; flags.append("[*] Neutral RSI tracking")
             elif 75 < rsi <= 80: score += 1; flags.append("[-] Warning: RSI approaching overbought")
             elif 30 <= rsi < 40: score += 1; flags.append("[-] Weak RSI momentum, nearing oversold")
             elif rsi > 80: flags.append("[-] Asset overbought (RSI > 80)")

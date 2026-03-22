@@ -10,16 +10,16 @@ class ScoreEngine:
         normalized = max(0, min(normalized, 100))
         
         # Ratings logic
-        if normalized >= 70:
+        if normalized >= 68:
             rating = "Strong Buy"
             emoji = "🟢"
-        elif normalized >= 58:
+        elif normalized >= 55:
             rating = "Good Investment"
             emoji = "🟢"
-        elif normalized >= 44:
+        elif normalized >= 42:
             rating = "Average / Hold"
             emoji = "🟡"
-        elif normalized >= 32:
+        elif normalized >= 30:
             rating = "Risky / Weak"
             emoji = "🟠"
         else:

@@ -100,8 +100,8 @@ class OwnershipAnalyzer:
                     else: flags.append("[-] Low Promoter/Insider stake (<5%)")
                 elif (symbol.endswith(".NS") or symbol.endswith(".BO")):
                     # Data was discarded due to unreliability (BUG 5)
-                    score += 1.5
-                    flags.append("[-] Promoter data unreliable for this stock (Discarded)")
+                    score += 0
+                    flags.append("[*] Promoter data unavailable for this stock (skipped)")
                     
                 if inst is not None:
                     if inst >= 20: score += 3; flags.append("[+] Strong institutional backing (>=20%)")

@@ -578,8 +578,9 @@ else:
                     ("Net Profit Margin", ratios.get("Net Margin"), avgs.get("net_margin"), True, False),
                     ("Operating Margin", ratios.get("Operating Margin"), avgs.get("operating_margin"), True, False),
                     ("ROA", ratios.get("ROA"), avgs.get("roa"), True, False),
-                    ("EV to EBITDA", None, None, False, True), # omitted for brevity unless in dict
-                    ("PEG Ratio", ratios.get("PEG Ratio"), None, False, True),
+                    ("EV to EBITDA", ratios.get("EV/EBITDA"), None, False, True),
+                    ("PEG Ratio", ratios.get("PEG Ratio") or res["info"].get("trailingPegRatio") or res["info"].get("pegRatio"), None, False, True),
+                    ("Price to Sales", ratios.get("Price/Sales") or res["info"].get("priceToSalesTrailing12Months"), None, False, True),
                     ("Current Ratio", ratios.get("Current Ratio"), avgs.get("current_ratio"), False, False),
                     ("Revenue Growth YoY", ratios.get("Revenue Growth"), avgs.get("rev_growth"), True, False),
                     ("Earnings Growth YoY", ratios.get("Earnings Growth"), avgs.get("earn_growth"), True, False)
@@ -647,9 +648,21 @@ else:
                 ratios = res["fundamental"].get("ratios", {})
                 html = '<div style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top:20px;">'
                 for k, v in ratios.items():
-                    val_str = f"{v:.2f}" if v is not None else "N/A"
-                    if v is not None and ('Growth' in k or 'Margin' in k or 'ROE' in k or 'ROA' in k): val_str += "%"
-                    elif v is not None: val_str += "x"
+                    if v is None:
+                        val_str = "N/A"
+                    else:
+                        v_float = float(v)
+                        pct_keys = ['Growth', 'Margin', 'ROE', 'ROA', 'EBITDA']
+                        ratio_keys = ['Ratio', 'Turnover', 'Coverage', 'EV/EBITDA', 'Price/Sales']
+                        if any(p in k for p in pct_keys):
+                            color = "#4edea3" if v_float >= 0 else "#ff6b6b"
+                            val_str = f'<span style="color:{color}">{v_float:.2f}%</span>'
+                        elif any(r in k for r in ratio_keys):
+                            val_str = f"{v_float:.2f}x"
+                        elif 'PE Ratio' in k or 'PB Ratio' in k:
+                            val_str = f"{v_float:.2f}x"
+                        else:
+                            val_str = f"{v_float:.2f}"
                     html += f'<div class="card" style="margin-bottom:0;"><div class="card-header">{k}</div><div class="card-value" style="font-size:20px;">{val_str}</div></div>'
                 html += '</div>'
                 st.markdown(html, unsafe_allow_html=True)
