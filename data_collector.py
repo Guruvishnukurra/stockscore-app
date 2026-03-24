@@ -163,7 +163,7 @@ class DataCollector:
         shares = extracted.get("sharesOutstanding")
         if shares is None or pd.isna(shares):
             try:
-                shares = self.ticker.fast_info.shares_outstanding
+                shares = self.ticker.fast_info.shares
             except:
                 pass
         extracted["sharesOutstanding"] = shares
