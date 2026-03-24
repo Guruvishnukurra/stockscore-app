@@ -69,14 +69,10 @@ class ValuationAnalyzer:
             elif market_cap and curr_price and curr_price > 0:
                 shares = market_cap / curr_price
 
-            # FCF SCALE CHECK
-            if fcf is not None and abs(fcf) < 1000 and market_cap and market_cap > 1e9:
-                fcf *= 1e9
-
             rev_growth = self.info.get("revenueGrowth")
             growth_rate = 0.05
             if rev_growth is not None:
-                growth_rate = min(max(float(rev_growth), -0.05), 0.15)
+                growth_rate = min(max(float(rev_growth), -0.05), 0.12)
                 
             dcf_score = 0
             flags = []
@@ -98,7 +94,7 @@ class ValuationAnalyzer:
                 flags.append("[-] Negative Free Cash Flow (Cannot run DCF)")
             else:
                 terminal_growth = 0.03
-                wacc = 0.10
+                wacc = 0.12
                 
                 projected = []
                 pv_sum = 0
