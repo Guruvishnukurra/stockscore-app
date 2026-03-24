@@ -128,17 +128,6 @@ class FundamentalAnalyzer:
         pe = self._safe_get("trailingPE")
         if pe is None:
             pe = self.info.get("forwardPE")
-            
-        # FIX 1 — Retry using fast_info
-        if pe is None:
-            try:
-                import yfinance as yf
-                t = yf.Ticker(self.info.get("symbol",""))
-                if hasattr(t.fast_info, "pe_ratio"):
-                    if t.fast_info.pe_ratio and t.fast_info.pe_ratio > 0:
-                        pe = t.fast_info.pe_ratio
-            except Exception:
-                pass
                 
         # FIX 3 — Calculate PE from price and EPS as a persistent fallback
         if pe is None:

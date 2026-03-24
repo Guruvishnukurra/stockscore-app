@@ -134,11 +134,13 @@ class DataCollector:
             for attempt in range(2):
                 try:
                     time.sleep(1)
-                    fresh = self.ticker.info
-                    if fresh.get("trailingPE"):
+                    # Recreate Ticker to bypass internal yfinance .info cache
+                    fresh_ticker = yf.Ticker(self.ticker_str)
+                    fresh = fresh_ticker.info
+                    if fresh and fresh.get("trailingPE"):
                         extracted["trailingPE"] = fresh["trailingPE"]
                         break
-                    if fresh.get("forwardPE"):
+                    if fresh and fresh.get("forwardPE"):
                         extracted["forwardPE"] = fresh["forwardPE"]
                         break
                 except Exception:
