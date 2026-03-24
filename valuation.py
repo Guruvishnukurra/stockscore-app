@@ -147,7 +147,24 @@ class ValuationAnalyzer:
             ind_pe = self.industry_avg.get("pe", 20)
             
             if fwd_eps is None or fwd_eps <= 0 or curr_price is None or ind_pe <= 0:
-                pe_score = 5
+                # FIX 4 — Use calculated PE as proxy
+                cached_pe = self.info.get("_calculated_pe")
+                if cached_pe and curr_price and ind_pe and ind_pe > 0:
+                    fwd_pe = cached_pe * 0.95
+                    rel_pe = fwd_pe / ind_pe
+                    
+                    pe_res["forward_pe"] = fwd_pe
+                    pe_res["relative_pe"] = rel_pe
+                    
+                    if rel_pe < 0.7: pe_score = 10; flags.append("[+] Forward PE implies significant discount to Industry (<0.7x)")
+                    elif rel_pe < 0.9: pe_score = 8; flags.append("[+] Forward PE implies discount to Industry (<0.9x)")
+                    elif rel_pe < 1.1: pe_score = 6; flags.append("[*] Forward Valuation inline with Industry Peers (<1.1x)")
+                    elif rel_pe < 1.3: pe_score = 4; flags.append("[*] Forward Valuation slightly above Industry (<1.3x)")
+                    elif rel_pe < 1.6: pe_score = 2; flags.append("[-] Forward PE suggests moderate premium (<1.6x)")
+                    elif rel_pe < 2.0: pe_score = 1; flags.append("[-] Forward PE suggests high premium (<2.0x)")
+                    else: flags.append("[-] High valuation premium relative to industry peers (>2.0x)")
+                else:
+                    pe_score = 5
             else:
                 fwd_pe = curr_price / fwd_eps
                 rel_pe = fwd_pe / ind_pe

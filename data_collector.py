@@ -129,6 +129,21 @@ class DataCollector:
         if curr_price is None or pd.isna(curr_price):
             curr_price = extracted.get("currentPrice") or extracted.get("regularMarketPrice") or extracted.get("previousClose")
             
+        # FIX 2 — Specific retry for PE if missing
+        if extracted.get("trailingPE") is None:
+            for attempt in range(2):
+                try:
+                    time.sleep(1)
+                    fresh = self.ticker.info
+                    if fresh.get("trailingPE"):
+                        extracted["trailingPE"] = fresh["trailingPE"]
+                        break
+                    if fresh.get("forwardPE"):
+                        extracted["forwardPE"] = fresh["forwardPE"]
+                        break
+                except Exception:
+                    pass
+
         extracted["currentPrice_resolved"] = curr_price
         extracted["currentPrice"] = curr_price
         extracted["symbol"] = self.ticker_str
@@ -175,12 +190,15 @@ class DataCollector:
         symbol = info.get("symbol", "")
         sector = SECTOR_OVERRIDES.get(symbol) or info.get("sector", "Unknown")
         
+        # FIX 5 — Clear stale industry cache when stock info fetch returns very incomplete data
+        info_keys_count = len([v for v in info.values() if v is not None])
+        
         cache_dir = os.path.join(tempfile.gettempdir(), "stockscore_cache")
         os.makedirs(cache_dir, exist_ok=True)
         safe_sector = "".join(x for x in sector if x.isalnum())
         cache_file = os.path.join(cache_dir, f"{safe_sector}_avgs.json")
         
-        if os.path.exists(cache_file):
+        if os.path.exists(cache_file) and info_keys_count >= 10:
             try:
                 file_time = os.path.getmtime(cache_file)
                 if time.time() - file_time < 86400: # 24 hours
