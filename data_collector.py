@@ -217,6 +217,10 @@ class DataCollector:
             "Consumer Cyclical": {"pe": 20, "pb": 3.5, "roe": 15, "net_margin": 8, "debt_equity": 0.5, "rev_growth": 10, "operating_margin": 12, "roa": 6.0, "current_ratio": 1.3, "earn_growth": 11},
             "Healthcare": {"pe": 30, "pb": 4.5, "roe": 16, "net_margin": 14, "debt_equity": 0.3, "rev_growth": 12, "operating_margin": 20, "roa": 7.0, "current_ratio": 2.0, "earn_growth": 13},
             "Basic Materials": {"pe": 10, "pb": 1.5, "roe": 12, "net_margin": 7, "debt_equity": 0.7, "rev_growth": 6, "operating_margin": 10, "roa": 5.0, "current_ratio": 1.2, "earn_growth": 6},
+            "Industrials": {"pe": 25, "pb": 4.0, "roe": 15, "net_margin": 10, "debt_equity": 0.5, "rev_growth": 12, "operating_margin": 12, "roa": 6.0, "current_ratio": 1.2, "earn_growth": 15},
+            "Utilities": {"pe": 15, "pb": 2.0, "roe": 12, "net_margin": 10, "debt_equity": 1.5, "rev_growth": 6, "operating_margin": 15, "roa": 4.0, "current_ratio": 1.2, "earn_growth": 6},
+            "Real Estate": {"pe": 35, "pb": 3.5, "roe": 10, "net_margin": 15, "debt_equity": 0.8, "rev_growth": 15, "operating_margin": 25, "roa": 5.0, "current_ratio": 2.0, "earn_growth": 15},
+            "Communication Services": {"pe": 25, "pb": 3.0, "roe": 15, "net_margin": 12, "debt_equity": 1.0, "rev_growth": 10, "operating_margin": 20, "roa": 6.0, "current_ratio": 1.5, "earn_growth": 12},
             "Default": {"pe": 20, "pb": 2.5, "roe": 12, "net_margin": 8, "debt_equity": 0.5, "rev_growth": 8, "operating_margin": 14, "roa": 6.0, "current_ratio": 1.5, "earn_growth": 8}
         }
         
@@ -228,6 +232,10 @@ class DataCollector:
             "Consumer Cyclical": ["MARUTI.NS", "TATAMOTORS.NS", "HEROMOTOCO.NS", "BAJAJ-AUTO.NS", "EICHERMOT.NS"],
             "Healthcare": ["SUNPHARMA.NS", "DRREDDY.NS", "CIPLA.NS", "DIVISLAB.NS", "LUPIN.NS"],
             "Basic Materials": ["TATASTEEL.NS", "JSWSTEEL.NS", "HINDALCO.NS", "SAIL.NS", "VEDL.NS"],
+            "Industrials": ["LT.NS", "SIEMENS.NS", "ABB.NS", "HAL.NS", "BEL.NS"],
+            "Utilities": ["TATAPOWER.NS", "NTPC.NS", "POWERGRID.NS", "ADANIGREEN.NS", "JSWENERGY.NS"],
+            "Real Estate": ["DLF.NS", "LODHA.NS", "GODREJPROP.NS", "OBEROIRLTY.NS", "PHOENIXLTD.NS"],
+            "Communication Services": ["BHARTIARTL.NS", "IDEA.NS", "TATACOMM.NS", "INDUSTOWER.NS", "MTNL.NS"],
             "US Technology": ["AAPL", "MSFT", "GOOGL", "META", "NVDA"],
             "US Financials": ["JPM", "BAC", "GS", "MS", "WFC"]
         }
