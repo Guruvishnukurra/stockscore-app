@@ -19,21 +19,40 @@ class ValuationAnalyzer:
         try:
             t = yf.Ticker(self.info.get("symbol",""))
             
-            # Get forward EPS estimates by year
-            ee = t.earnings_estimate
-            if ee is not None and not ee.empty:
-                for col in ee.columns:
-                    val = ee.loc["Avg", col] if "Avg" in ee.index else None
-                    if val and not pd.isna(val):
-                        analyst_eps.append(float(val))
-            
-            # Get revenue estimates by year
-            re = t.revenue_estimate
-            if re is not None and not re.empty:
-                for col in re.columns:
-                    val = re.loc["Avg", col] if "Avg" in re.index else None
-                    if val and not pd.isna(val):
-                        analyst_revenue.append(float(val))
+            # Robust extraction function
+            def extract_from_df(df):
+                vals = []
+                if df is None or df.empty: return vals
+                
+                # Check rows vs cols structure
+                # We want 0y and +1y estimates
+                target_periods = ['0y', '+1y', 'Current Year', 'Next Year']
+                target_cols = ['avg', 'Avg', 'Avg. Estimate']
+                
+                # Case A: Periods are in index, values in columns (Indian/New style)
+                idx_names = [str(i) for i in df.index]
+                for p in target_periods:
+                    if p in idx_names:
+                        for c in target_cols:
+                            if c in df.columns:
+                                val = df.loc[p, c]
+                                if val and not pd.isna(val) and float(val) != 0:
+                                    vals.append(float(val))
+                                    break
+                
+                # Case B: Estimates in index, Periods in columns (Older style)
+                if not vals:
+                    for r in target_cols:
+                        if r in df.index:
+                            for c in target_periods:
+                                if c in df.columns:
+                                    val = df.loc[r, c]
+                                    if val and not pd.isna(val) and float(val) != 0:
+                                        vals.append(float(val))
+                return vals
+
+            analyst_eps = extract_from_df(t.earnings_estimate)
+            analyst_revenue = extract_from_df(t.revenue_estimate)
         except:
             pass
 
