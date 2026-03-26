@@ -678,6 +678,22 @@ else:
                 up_col = "var(--green)" if up_val is not None and up_val > 0 else "var(--red)" if up_val is not None else "var(--primary-text)"
                 c3.markdown(f'<div class="card"><div class="card-header">Upside</div><div class="card-value" style="color:{up_col}">{up_str}</div></div>', unsafe_allow_html=True)
 
+                # DCF Data Source & Growth Rate info
+                ds = dcf.get("data_source", "Historical FCF")
+                ds_col = "var(--green)" if "Analyst" in ds else "var(--amber)"
+                gr = dcf.get("growth_rate_used", 0) * 100
+                
+                st.markdown(f"""
+                <div style="display: flex; gap: 20px; margin-top: -10px; margin-bottom: 20px; padding-left: 5px;">
+                    <div style="font-size: 12px; color: var(--secondary-text);">
+                        DCF based on: <span style="color: {ds_col}; font-weight: 600;">{ds}</span>
+                    </div>
+                    <div style="font-size: 12px; color: var(--secondary-text);">
+                        Growth Rate Assumed: <span style="color: var(--blue); font-weight: 600;">{gr:.1f}%</span>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
             with t_tech:
                 ti = res["technical"].get("indicators", {})
                 html = '<div style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top:20px;">'

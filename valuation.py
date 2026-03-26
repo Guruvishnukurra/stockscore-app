@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import yfinance as yf
 
 class ValuationAnalyzer:
     def __init__(self, data_cache, industry_avg):
@@ -9,8 +10,33 @@ class ValuationAnalyzer:
 
     def analyze(self):
         using_proxy = False
+        using_analyst_estimates = False
         fcf = None
         
+        # STEP 1 — Fetch analyst estimates
+        analyst_eps = []
+        analyst_revenue = []
+        try:
+            t = yf.Ticker(self.info.get("symbol",""))
+            
+            # Get forward EPS estimates by year
+            ee = t.earnings_estimate
+            if ee is not None and not ee.empty:
+                for col in ee.columns:
+                    val = ee.loc["Avg", col] if "Avg" in ee.index else None
+                    if val and not pd.isna(val):
+                        analyst_eps.append(float(val))
+            
+            # Get revenue estimates by year
+            re = t.revenue_estimate
+            if re is not None and not re.empty:
+                for col in re.columns:
+                    val = re.loc["Avg", col] if "Avg" in re.index else None
+                    if val and not pd.isna(val):
+                        analyst_revenue.append(float(val))
+        except:
+            pass
+
         try:
             cf_df = self.financials.get("cash_flow", pd.DataFrame())
             
@@ -69,10 +95,61 @@ class ValuationAnalyzer:
             elif market_cap and curr_price and curr_price > 0:
                 shares = market_cap / curr_price
 
-            rev_growth = self.info.get("revenueGrowth")
-            growth_rate = 0.05
-            if rev_growth is not None:
-                growth_rate = min(max(float(rev_growth), -0.05), 0.12)
+
+            # STEP 2 — Calculate growth rate from analyst estimates if available:
+            analyst_growth = None
+
+            if len(analyst_eps) >= 2:
+                # Use analyst EPS growth as growth rate
+                g_rates = []
+                for i in range(1, len(analyst_eps)):
+                    if analyst_eps[i-1] > 0:
+                        g = (analyst_eps[i] - analyst_eps[i-1]) / analyst_eps[i-1]
+                        g_rates.append(g)
+                if g_rates:
+                    analyst_growth = sum(g_rates) / len(g_rates)
+                    # Cap between -5% and 20%
+                    analyst_growth = min(max(analyst_growth, -0.05), 0.20)
+
+            elif len(analyst_revenue) >= 2:
+                # Fall back to revenue growth estimate
+                if analyst_revenue[0] > 0:
+                    analyst_growth = (analyst_revenue[1] - analyst_revenue[0]) / analyst_revenue[0]
+                    analyst_growth = min(max(analyst_growth, -0.05), 0.20)
+
+            # Use analyst growth if available, else fall back to historical
+            if analyst_growth is not None:
+                growth_rate = analyst_growth
+                using_analyst_estimates = True
+            else:
+                rev_growth = self.info.get("revenueGrowth")
+                growth_rate = 0.05
+                if rev_growth is not None:
+                    growth_rate = min(max(float(rev_growth), -0.05), 0.15)
+                using_analyst_estimates = False
+
+            # STEP 3 — Use forward EPS to anchor FCF
+            fwd_eps = self.info.get("forwardEps")
+            
+            if fwd_eps and fwd_eps > 0 and shares:
+                implied_net_income = fwd_eps * shares
+                # FCF is typically 80-110% of net income for quality companies
+                # Use a conservative 85% conversion
+                analyst_fcf = implied_net_income * 0.85
+                
+                # Only use analyst FCF if it is reasonably close to historical FCF (within 5x)
+                if fcf is not None and fcf > 0:
+                    ratio = analyst_fcf / fcf
+                    if 0.2 <= ratio <= 5.0:
+                        # Blend: 60% analyst, 40% historical
+                        fcf = analyst_fcf * 0.6 + fcf * 0.4
+                    else:
+                        # Estimates too different from reality, use historical only
+                        pass
+                elif fcf is None or fcf <= 0:
+                    # No historical FCF, use analyst
+                    fcf = analyst_fcf
+                    using_proxy = True
                 
             dcf_score = 0
             flags = []
@@ -83,7 +160,10 @@ class ValuationAnalyzer:
                 "upside_pct": None,
                 "projected_fcfs": [],
                 "pv_sum": None,
-                "terminal_value": None
+                "terminal_value": None,
+                "data_source": ("Analyst Estimates" if using_analyst_estimates else "Historical FCF"),
+                "analyst_growth_used": (analyst_growth is not None),
+                "growth_rate_used": growth_rate
             }
             
             if fcf is None or shares is None or curr_price is None or shares <= 0:
